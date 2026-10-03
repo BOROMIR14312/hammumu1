@@ -28,6 +28,17 @@ Open `index.html` in a browser. That's it. You get **3 lives** and **45 seconds*
 - **🔥 FEVER** — reach combo ×8 and everything doubles for 6 seconds. Everything also gets faster. Good luck.
 - **Lives** — lose all 3 and you're KNOCKED OUT before the clock even runs out.
 
+## 👥 Multiplayer
+
+On the claude.ai-published version, the game has live multiplayer:
+
+- **Rooms** — create a room, share the 4-letter code, friends join from the same page.
+- **Live matches** — anyone hits START MATCH and everyone in the room gets a synchronized 3-2-1 countdown into the **same seeded run** (identical enemy sequence — a fair race). Opponents' scores update live above your board while you play.
+- **Match standings** — podium with medals when everyone finishes. 👑 for the winner.
+- **🏆 Hall of Bonk** — a persistent shared leaderboard (top 10 all-time) with real names.
+
+This copy of the file degrades gracefully: opened from disk or GitHub Pages it's solo-only, since multiplayer rides on the claude.ai artifact runtime (`room`, `db`, and `user` capabilities — real-time presence for the racing, a shared document store for the leaderboard).
+
 ## Ranks
 
 | Score | Rank |

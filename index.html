@@ -76,7 +76,7 @@
     height: 8px;
     border-radius: 999px;
     background: rgba(255,255,255,0.08);
-    margin-bottom: 12px;
+    margin-bottom: 6px;
     overflow: hidden;
   }
   #comboFill {
@@ -86,6 +86,24 @@
     background: linear-gradient(90deg, var(--accent), var(--accent2));
     transition: width 0.15s;
   }
+  #rivals {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 0;
+    margin-bottom: 8px;
+    max-width: min(92vw, 520px);
+  }
+  .rival {
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .rival b { color: var(--accent); }
   #board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -160,11 +178,24 @@
     80% { opacity: 1; }
     100% { opacity: 0; }
   }
+  #countdown {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(5rem, 20vw, 10rem);
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(255,185,55,0.5);
+    background: rgba(18, 10, 36, 0.7);
+    z-index: 30;
+  }
+  #countdown.show { display: flex; }
   button {
-    margin-top: 16px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
-    padding: 12px 34px;
+    padding: 10px 26px;
     border: none;
     border-radius: 999px;
     background: linear-gradient(90deg, var(--accent), var(--accent2));
@@ -174,34 +205,99 @@
     transition: transform 0.1s;
   }
   button:hover { transform: scale(1.06); }
+  button.ghost {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    box-shadow: none;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
   #overlay {
     position: fixed;
     inset: 0;
-    background: rgba(18, 10, 36, 0.9);
+    background: rgba(18, 10, 36, 0.92);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
     z-index: 20;
     text-align: center;
-    padding: 20px;
+    padding: 24px 20px 40px;
     overflow-y: auto;
   }
   #overlay.hidden { display: none; }
-  #overlay h2 { font-size: 1.9rem; color: var(--accent); }
-  #rank { font-size: 1.15rem; }
+  #overlay h2 { font-size: 1.8rem; color: var(--accent); }
+  #rank { font-size: 1.1rem; }
   .legend {
     display: grid;
     grid-template-columns: auto auto;
-    gap: 4px 14px;
+    gap: 3px 14px;
     text-align: left;
-    font-size: 0.92rem;
-    margin: 8px 0;
+    font-size: 0.88rem;
+    margin: 4px 0;
     max-width: 420px;
   }
   .legend b { color: var(--accent); }
   .legend .bad b { color: var(--accent2); }
+  .panel {
+    width: min(92vw, 440px);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-top: 8px;
+  }
+  .panel h3 {
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; align-items: center; }
+  #codeInput {
+    width: 110px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.3);
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-align: center;
+    text-transform: uppercase;
+    outline: none;
+  }
+  #roomCode { font-size: 1.3rem; font-weight: 800; letter-spacing: 0.25em; color: var(--accent); }
+  .peerlist { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 8px 0; }
+  .peer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 4px 10px 4px 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+  }
+  .peer img { width: 22px; height: 22px; border-radius: 50%; }
+  .lb { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .lb td { padding: 4px 6px; text-align: left; }
+  .lb td:last-child { text-align: right; color: var(--accent); font-weight: 700; }
+  .lb tr.me td { color: var(--accent2); }
+  #standings { width: min(92vw, 440px); }
+  .stRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .stRow.me { background: rgba(255,185,55,0.12); }
+  .stRow .sc { color: var(--accent); font-weight: 800; }
+  .muted { opacity: 0.6; font-size: 0.82rem; }
 </style>
 </head>
 <body>
@@ -215,8 +311,10 @@
     BEST <span id="best">0</span>
   </div>
   <div id="comboBar"><div id="comboFill"></div></div>
+  <div id="rivals"></div>
   <div id="board"></div>
   <div id="banner"></div>
+  <div id="countdown"></div>
 
   <svg id="hammer" viewBox="0 0 100 100">
     <rect x="44" y="30" width="12" height="62" rx="5" fill="#a9743c"/>
@@ -236,9 +334,36 @@
       <div class="bad">😎 <b>Pro</b></div><div class="bad">−15 and <b>−1 life</b></div>
       <div class="bad">💣 <b>Bomb</b></div><div class="bad">−30 and <b>−1 life</b></div>
     </div>
-    <p id="ovText">3 lives · 45 seconds · waves get meaner ·<br>combo ×8 triggers 🔥 FEVER (double points)</p>
+    <p id="ovText">3 lives · 45 seconds · combo ×8 = 🔥 FEVER (double points)</p>
+    <div id="standings" style="display:none"></div>
     <div id="rank"></div>
-    <button id="startBtn">START</button>
+    <button id="startBtn">PLAY SOLO</button>
+
+    <div class="panel" id="mpBox" style="display:none">
+      <h3>👥 MULTIPLAYER</h3>
+      <div id="mpJoin">
+        <div class="row">
+          <input id="codeInput" maxlength="8" placeholder="CODE" autocomplete="off">
+          <button id="joinBtn" class="ghost">JOIN</button>
+          <button id="createBtn">NEW ROOM</button>
+        </div>
+        <p class="muted" style="margin-top:6px">Everyone races the same seeded run, live.</p>
+      </div>
+      <div id="mpLobby" style="display:none">
+        <div>ROOM <span id="roomCode"></span></div>
+        <div class="peerlist" id="peerList"></div>
+        <div class="row">
+          <button id="matchBtn">START MATCH</button>
+          <button id="leaveBtn" class="ghost">LEAVE</button>
+        </div>
+        <p class="muted" style="margin-top:6px">Share the room code — anyone in this room joins the countdown.</p>
+      </div>
+    </div>
+
+    <div class="panel" id="lbBox" style="display:none">
+      <h3>🏆 HALL OF BONK</h3>
+      <table class="lb"><tbody id="lbRows"></tbody></table>
+    </div>
   </div>
 
 <script>
@@ -250,9 +375,7 @@
       <rect x="22" y="34" width="56" height="58" rx="24" fill="${fill}"/>
       ${extra}
     </svg>`;
-
   const EYES = '<circle cx="38" cy="58" r="5.5" fill="#221038"/><circle cx="62" cy="58" r="5.5" fill="#221038"/>';
-
   const ART = {
     noob: () => BODY('#ffb937', EYES +
       '<circle cx="50" cy="74" r="7" fill="#221038"/>' +
@@ -264,8 +387,8 @@
       '<path d="M40 76 L60 76" stroke="#221038" stroke-width="4" stroke-linecap="round"/>'),
     tank: (hp) => BODY('#ffb937', EYES +
       '<path d="M40 78 Q50 72 60 78" stroke="#221038" stroke-width="4" fill="none" stroke-linecap="round"/>' +
-      `<path d="M18 44 Q50 6 82 44 L82 50 L18 50 Z" fill="#7a8494"/>` +
-      `<rect x="14" y="44" width="72" height="10" rx="5" fill="#5c6675"/>` +
+      '<path d="M18 44 Q50 6 82 44 L82 50 L18 50 Z" fill="#7a8494"/>' +
+      '<rect x="14" y="44" width="72" height="10" rx="5" fill="#5c6675"/>' +
       (hp === 1 ? '<path d="M44 12 L50 26 L40 34 L52 44" stroke="#221038" stroke-width="3.5" fill="none"/>' : '')),
     dodger: () => BODY('#ffb937',
       '<ellipse cx="38" cy="58" rx="6" ry="4" fill="#221038"/><ellipse cx="62" cy="58" rx="6" ry="4" fill="#221038"/>' +
@@ -311,7 +434,6 @@
     pro:    { bad: true, penalty: 15 },
     bomb:   { bad: true, penalty: 30 },
   };
-  // spawn weights per wave: [type, weight]
   const WAVES = [
     { at: 0,  name: null, table: [['noob',78],['pro',14],['clock',4],['gold',4]] },
     { at: 15, name: 'WAVE 2 — the noobs drank coffee ☕', table: [['noob',48],['ninja',16],['tank',13],['pro',15],['clock',4],['gold',4]] },
@@ -324,7 +446,13 @@
         bestEl = $('best'), livesEl = $('lives'), waveEl = $('wave'),
         comboFill = $('comboFill'), overlay = $('overlay'), ovTitle = $('ovTitle'),
         ovText = $('ovText'), ovLegend = $('ovLegend'), rankEl = $('rank'),
-        startBtn = $('startBtn'), hammer = $('hammer'), banner = $('banner');
+        startBtn = $('startBtn'), hammer = $('hammer'), banner = $('banner'),
+        rivalsEl = $('rivals'), countdownEl = $('countdown'),
+        mpBox = $('mpBox'), mpJoin = $('mpJoin'), mpLobby = $('mpLobby'),
+        codeInput = $('codeInput'), joinBtn = $('joinBtn'), createBtn = $('createBtn'),
+        roomCodeEl = $('roomCode'), peerList = $('peerList'),
+        matchBtn = $('matchBtn'), leaveBtn = $('leaveBtn'),
+        lbBox = $('lbBox'), lbRows = $('lbRows'), standingsEl = $('standings');
 
   const holes = [];
   for (let i = 0; i < 9; i++) {
@@ -339,10 +467,21 @@
 
   // ---------- state ----------
   let score, timeLeft, elapsed, combo, maxCombo, lives, wave, playing = false, fever = false;
+  let counting = false;
   let tickTimer = null, spawnTimer = null, feverTimer = null;
+  let rand = Math.random; // swapped for a seeded rng in matches
   let best = 0;
   try { best = +localStorage.getItem('hammumu-best') || 0; } catch (e) {}
   bestEl.textContent = best;
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
 
   // ---------- audio ----------
   let ac;
@@ -381,12 +520,307 @@
     document.body.classList.add('shake');
   }
 
+  // ---------- multiplayer (claude.ai runtime; the page works solo without it) ----------
+  const mp = {
+    base: null,      // lobby room namespace
+    room: null,      // joined NamedRoom
+    code: '',
+    user: null,
+    db: null,
+    myId: null,
+    myNick: '',
+    match: null,     // active match id
+    lastMatch: null, // for standings rendering
+    seen: new Set(), // match ids already joined
+    lastPresAt: 0,
+    unsubPeers: null,
+  };
+
+  async function initCapabilities() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    const [room, user, db] = await Promise.all([
+      claude.use('room'), claude.use('user'), claude.use('db'),
+    ]);
+    mp.base = room; mp.user = user; mp.db = db;
+    if (user) {
+      try {
+        const me = await user.me();
+        mp.myId = me.id;
+        mp.myNick = me.name || '';
+      } catch (e) {}
+    }
+    if (room) mpBox.style.display = '';
+    if (db) initLeaderboard();
+  }
+  initCapabilities();
+
+  function setPres(patch) {
+    if (!mp.room) return;
+    mp.room.presence(patch).catch(() => {});
+  }
+
+  async function joinRoom(code) {
+    if (!mp.base) return;
+    code = (code || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (!/^[a-z0-9][a-z0-9-]{2,11}$/.test(code)) {
+      codeInput.value = '';
+      codeInput.placeholder = '3-12 CHARS';
+      return;
+    }
+    joinBtn.disabled = createBtn.disabled = true;
+    try {
+      const room = await mp.base.join('game-' + code);
+      mp.room = room;
+      mp.code = code;
+      roomCodeEl.textContent = code.toUpperCase();
+      mpJoin.style.display = 'none';
+      mpLobby.style.display = '';
+      setPres({ who: mp.myId, nick: mp.myNick, state: 'lobby', score: null, match: null, result: null, hosting: null });
+      mp.unsubPeers = room.onPeers(onPeersChange, () => { leaveRoom(true); });
+    } catch (e) {
+      codeInput.placeholder = 'FAILED';
+    }
+    joinBtn.disabled = createBtn.disabled = false;
+  }
+
+  function leaveRoom(silent) {
+    if (mp.unsubPeers) { mp.unsubPeers(); mp.unsubPeers = null; }
+    if (mp.room) { mp.room.leave().catch(() => {}); }
+    mp.room = null; mp.code = ''; mp.match = null;
+    mpJoin.style.display = '';
+    mpLobby.style.display = 'none';
+    peerList.textContent = '';
+    rivalsEl.textContent = '';
+  }
+
+  function onPeersChange(change) {
+    renderPeerList();
+    renderRivals();
+    if (mp.lastMatch && !overlay.classList.contains('hidden')) renderStandings();
+    // match announcements arrive as presence { hosting: {m, seed} }
+    for (const p of change.peers) {
+      const h = p.presence && p.presence.hosting;
+      if (h && h.m && h.seed != null && !mp.seen.has(h.m)) {
+        mp.seen.add(h.m);
+        if (!playing && !counting) acceptMatch(h.m, h.seed);
+      }
+    }
+  }
+
+  let renderToken = 0;
+  async function resolveNames(peers) {
+    const ids = [];
+    for (const p of peers) {
+      const id = p.by || (p.presence && p.presence.who);
+      if (id) ids.push(id);
+    }
+    let profiles = {};
+    if (mp.user && ids.length) {
+      try { profiles = await mp.user.profiles(ids); } catch (e) {}
+    }
+    return (p) => {
+      const id = p.by || (p.presence && p.presence.who);
+      const prof = id && profiles[id];
+      if (prof && prof.name) return { name: prof.name, avatar: prof.avatarUrl };
+      const nick = p.presence && typeof p.presence.nick === 'string' ? p.presence.nick : '';
+      return { name: nick || 'Player', avatar: prof ? prof.avatarUrl : null };
+    };
+  }
+
+  async function renderPeerList() {
+    if (!mp.room) return;
+    const token = ++renderToken;
+    const peers = mp.room.peers();
+    const nameOf = await resolveNames(peers);
+    if (token !== renderToken || !mp.room) return;
+    peerList.textContent = '';
+    for (const p of peers) {
+      const info = nameOf(p);
+      const chip = document.createElement('span');
+      chip.className = 'peer';
+      if (info.avatar) {
+        const img = document.createElement('img');
+        img.src = info.avatar;
+        chip.appendChild(img);
+      }
+      const label = document.createElement('span');
+      label.textContent = info.name + (p.isMe && p.sameTab ? ' (you)' : '');
+      chip.appendChild(label);
+      peerList.appendChild(chip);
+    }
+  }
+
+  async function renderRivals() {
+    if (!mp.room || !mp.match) { rivalsEl.textContent = ''; return; }
+    const peers = mp.room.peers().filter(p => !p.isMe &&
+      p.presence && (p.presence.match === mp.match || (p.presence.result && p.presence.result.m === mp.match)));
+    const nameOf = await resolveNames(peers);
+    if (!mp.match) return;
+    rivalsEl.textContent = '';
+    const rows = peers.map(p => {
+      const pr = p.presence;
+      const done = pr.result && pr.result.m === mp.match;
+      const sc = done ? pr.result.score : (typeof pr.score === 'number' ? pr.score : 0);
+      return { name: nameOf(p).name, sc, done };
+    }).sort((a, b) => b.sc - a.sc);
+    for (const r of rows) {
+      const chip = document.createElement('span');
+      chip.className = 'rival';
+      const nm = document.createElement('span');
+      nm.textContent = (r.done ? '🏁 ' : '') + r.name + ' ';
+      const sc = document.createElement('b');
+      sc.textContent = r.sc;
+      chip.appendChild(nm); chip.appendChild(sc);
+      rivalsEl.appendChild(chip);
+    }
+  }
+
+  async function renderStandings() {
+    const M = mp.lastMatch;
+    if (!M) { standingsEl.style.display = 'none'; return; }
+    const peers = mp.room ? mp.room.peers().filter(p => !p.isMe &&
+      p.presence && (p.presence.match === M || (p.presence.result && p.presence.result.m === M))) : [];
+    const nameOf = await resolveNames(peers);
+    if (mp.lastMatch !== M) return;
+    const rows = peers.map(p => {
+      const pr = p.presence;
+      const done = pr.result && pr.result.m === M;
+      return { name: nameOf(p).name, sc: done ? pr.result.score : (pr.score || 0), done, me: false };
+    });
+    rows.push({ name: 'You', sc: score, done: true, me: true });
+    rows.sort((a, b) => b.sc - a.sc);
+    const allDone = rows.every(r => r.done);
+    standingsEl.style.display = '';
+    standingsEl.textContent = '';
+    const title = document.createElement('h3');
+    title.textContent = '⚔️ MATCH STANDINGS';
+    title.style.color = 'var(--accent)';
+    title.style.letterSpacing = '0.1em';
+    title.style.fontSize = '0.85rem';
+    title.style.marginBottom = '6px';
+    standingsEl.appendChild(title);
+    rows.forEach((r, i) => {
+      const div = document.createElement('div');
+      div.className = 'stRow' + (r.me ? ' me' : '');
+      const left = document.createElement('span');
+      const medal = allDone && i === 0 ? '👑 ' : ['🥇 ', '🥈 ', '🥉 '][i] || '· ';
+      left.textContent = medal + r.name + (r.done ? '' : ' (playing…)');
+      const right = document.createElement('span');
+      right.className = 'sc';
+      right.textContent = r.sc;
+      div.appendChild(left); div.appendChild(right);
+      standingsEl.appendChild(div);
+    });
+  }
+
+  function announceMatch() {
+    if (!mp.room || playing || counting) return;
+    const m = 'm' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
+    const seed = (Math.random() * 4294967296) >>> 0;
+    mp.seen.add(m);
+    setPres({ hosting: { m, seed } });
+    acceptMatch(m, seed);
+  }
+
+  function acceptMatch(matchId, seed) {
+    counting = true;
+    mp.match = matchId;
+    mp.lastMatch = matchId;
+    overlay.classList.add('hidden');
+    standingsEl.style.display = 'none';
+    let n = 3;
+    countdownEl.classList.add('show');
+    countdownEl.textContent = n;
+    beep(440, 0.1);
+    const iv = setInterval(() => {
+      n--;
+      if (n > 0) {
+        countdownEl.textContent = n;
+        beep(440, 0.1);
+      } else {
+        clearInterval(iv);
+        countdownEl.textContent = 'GO!';
+        beep(880, 0.2);
+        setTimeout(() => {
+          countdownEl.classList.remove('show');
+          counting = false;
+          setPres({ hosting: null });
+          startGame(seed);
+        }, 400);
+      }
+    }, 800);
+  }
+
+  function pushScore(final) {
+    if (!mp.room || !mp.match) return;
+    const now = Date.now();
+    if (!final && now - mp.lastPresAt < 300) return;
+    mp.lastPresAt = now;
+    if (final) {
+      setPres({ state: 'done', score, result: { m: mp.match, score, combo: maxCombo, wave } });
+    } else {
+      setPres({ state: 'playing', score, match: mp.match, result: null });
+    }
+  }
+
+  // ---------- leaderboard (db) ----------
+  let myDbBest = -1;
+  function initLeaderboard() {
+    lbBox.style.display = '';
+    try {
+      mp.db.collection('scores').orderBy('score', 'desc').limit(10).onSnapshot(
+        snap => { renderLeaderboard(snap.docs); },
+        () => { lbBox.style.display = 'none'; }
+      );
+    } catch (e) { lbBox.style.display = 'none'; }
+  }
+
+  async function renderLeaderboard(docs) {
+    const rows = docs.filter(d => d.exists).map(d => ({ id: d.id, data: d.data() }));
+    for (const r of rows) if (r.id === mp.myId) myDbBest = +r.data.score || 0;
+    let profiles = {};
+    if (mp.user && rows.length) {
+      try { profiles = await mp.user.profiles(rows.map(r => r.id)); } catch (e) {}
+    }
+    lbRows.textContent = '';
+    if (!rows.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.className = 'muted';
+      td.textContent = 'No scores yet. Be the first noob on the board.';
+      tr.appendChild(td);
+      lbRows.appendChild(tr);
+      return;
+    }
+    rows.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      if (r.id === mp.myId) tr.className = 'me';
+      const rank = document.createElement('td');
+      rank.textContent = ['🥇', '🥈', '🥉'][i] || (i + 1) + '.';
+      const name = document.createElement('td');
+      const prof = profiles[r.id];
+      name.textContent = (prof && prof.name) || 'Someone';
+      const sc = document.createElement('td');
+      sc.textContent = r.data.score;
+      tr.appendChild(rank); tr.appendChild(name); tr.appendChild(sc);
+      lbRows.appendChild(tr);
+    });
+  }
+
+  function postScoreToLeaderboard() {
+    if (!mp.db || !mp.myId || score <= 0 || score <= myDbBest) return;
+    myDbBest = score;
+    mp.db.doc('scores/' + mp.myId)
+      .set({ score, combo: maxCombo, wave, at: new Date().toISOString() })
+      .catch(() => { myDbBest = -1; });
+  }
+
   // ---------- spawning ----------
   function pickType() {
     const table = WAVES[wave - 1].table;
     let total = 0;
     for (const [, w] of table) total += w;
-    let r = Math.random() * total;
+    let r = rand() * total;
     for (const [t, w] of table) { r -= w; if (r <= 0) return t; }
     return 'noob';
   }
@@ -399,7 +833,7 @@
     h.el.innerHTML = kind === 'tank' ? ART.tank(2) : ART[kind]();
     h.el.classList.add('up');
     h.el.classList.remove('bonked');
-    let stay = Math.max(380, 980 - elapsed * 13) + Math.random() * 350;
+    let stay = Math.max(380, 980 - elapsed * 13) + rand() * 350;
     if (t.fast) stay *= t.fast;
     if (t.slow) stay *= t.slow;
     if (fever) stay *= 0.8;
@@ -410,16 +844,16 @@
   function spawn() {
     if (!playing) return;
     const count = 1 +
-      (Math.random() < [0.10, 0.28, 0.45][wave - 1] ? 1 : 0) +
-      (wave === 3 && Math.random() < 0.15 ? 1 : 0);
+      (rand() < [0.10, 0.28, 0.45][wave - 1] ? 1 : 0) +
+      (wave === 3 && rand() < 0.15 ? 1 : 0);
     for (let n = 0; n < count; n++) {
       const free = holes.filter(h => !h.kind);
       if (!free.length) break;
-      raise(free[Math.floor(Math.random() * free.length)], pickType());
+      raise(free[Math.floor(rand() * free.length)], pickType());
     }
     let gap = Math.max(200, 560 - elapsed * 8);
     if (fever) gap *= 0.7;
-    spawnTimer = setTimeout(spawn, gap + Math.random() * 200);
+    spawnTimer = setTimeout(spawn, gap + rand() * 200);
   }
 
   function hide(h) {
@@ -471,6 +905,7 @@
     popText(x, y, label, '#ff5c8a');
     shake();
     beep(110, 0.25, 'sawtooth', 0.09);
+    pushScore(false);
     if (lives <= 0) setTimeout(() => end('KNOCKED OUT! 💀'), 320);
   }
 
@@ -513,7 +948,6 @@
       h.timer = setTimeout(() => hide(h), 700);
       return;
     }
-    // a scoring bonk
     combo++;
     maxCombo = Math.max(maxCombo, combo);
     updateCombo();
@@ -524,9 +958,10 @@
     scoreEl.textContent = score;
     popText(x, y, '+' + pts + (fever ? ' 🔥' : combo >= 3 ? ' ⚡' : ''), kind === 'gold' ? '#ffe066' : '#ffb937');
     beep(300 + Math.min(combo, 10) * 40, 0.08);
-    if (kind === 'gold') { beep(1200, 0.15, 'sine', 0.05); }
+    if (kind === 'gold') beep(1200, 0.15, 'sine', 0.05);
     holeEl.classList.add('bonked');
     setTimeout(() => hide(h), 70);
+    pushScore(false);
     if (combo >= 8 && !fever) startFever();
   }
 
@@ -555,17 +990,25 @@
       try { localStorage.setItem('hammumu-best', best); } catch (e) {}
       bestEl.textContent = best;
     }
+    pushScore(true);
+    postScoreToLeaderboard();
+    const wasMatch = !!mp.match;
+    mp.match = null;
+    rivalsEl.textContent = '';
     ovTitle.textContent = title + ' ' + score + ' pts';
     ovLegend.style.display = 'none';
     ovText.innerHTML = (isNewBest ? 'NEW BEST! 🎉<br>' : 'Best: ' + best + '<br>') +
       'Max combo: ' + maxCombo + ' · Reached wave ' + wave;
     rankEl.textContent = 'Rank: ' + rank(score);
-    startBtn.textContent = 'AGAIN';
+    startBtn.textContent = 'PLAY SOLO';
+    if (wasMatch) renderStandings(); else { mp.lastMatch = null; standingsEl.style.display = 'none'; }
     overlay.classList.remove('hidden');
     beep(520, 0.12); setTimeout(() => beep(390, 0.2), 130);
   }
 
-  function start() {
+  function startGame(seed) {
+    rand = (seed == null) ? Math.random : mulberry32(seed >>> 0);
+    if (seed == null) { mp.match = null; mp.lastMatch = null; }
     score = 0; timeLeft = DURATION; elapsed = 0; combo = 0; maxCombo = 0;
     lives = 3; wave = 1; fever = false; playing = true;
     scoreEl.textContent = 0;
@@ -577,6 +1020,7 @@
     overlay.classList.add('hidden');
     hammer.style.display = 'block';
     holes.forEach(hide);
+    if (mp.match) setPres({ state: 'playing', score: 0, match: mp.match, result: null });
     beep(440, 0.08); setTimeout(() => beep(660, 0.1), 100);
     tickTimer = setInterval(() => {
       timeLeft--; elapsed++;
@@ -594,15 +1038,27 @@
     spawn();
   }
 
+  // ---------- wiring ----------
   document.addEventListener('mousemove', e => {
     hammer.style.left = e.clientX + 'px';
     hammer.style.top = e.clientY + 'px';
   });
   document.addEventListener('mousedown', bonk);
   startBtn.addEventListener('click', () => {
+    if (counting) return;
     ovLegend.style.display = '';
-    start();
+    startGame(null);
   });
+  createBtn.addEventListener('click', () => {
+    const code = Array.from({ length: 4 }, () =>
+      'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random() * 31)]).join('');
+    codeInput.value = code;
+    joinRoom(code);
+  });
+  joinBtn.addEventListener('click', () => joinRoom(codeInput.value));
+  codeInput.addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(codeInput.value); });
+  matchBtn.addEventListener('click', announceMatch);
+  leaveBtn.addEventListener('click', () => leaveRoom(false));
 })();
 </script>
 </body>

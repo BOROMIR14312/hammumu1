@@ -38,25 +38,54 @@
     user-select: none;
     overflow: hidden;
   }
+  body.shake { animation: shake 0.3s; }
+  @keyframes shake {
+    0%,100% { transform: translate(0,0); }
+    20% { transform: translate(-8px,4px); }
+    40% { transform: translate(7px,-5px); }
+    60% { transform: translate(-5px,-3px); }
+    80% { transform: translate(4px,5px); }
+  }
+  body.fever h1 { animation: rainbow 0.5s linear infinite; }
+  body.fever .hole { box-shadow: inset 0 8px 18px rgba(0,0,0,0.7), 0 0 14px rgba(255,92,138,0.5); }
+  @keyframes rainbow { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
   h1 {
-    font-size: clamp(2rem, 6vw, 3.4rem);
+    font-size: clamp(1.8rem, 5.5vw, 3rem);
     letter-spacing: 0.18em;
     background: linear-gradient(90deg, var(--accent), var(--accent2));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     text-shadow: 0 0 30px rgba(255, 185, 55, 0.25);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
-  .tagline { opacity: 0.7; margin-bottom: 18px; font-size: 0.95rem; }
+  .tagline { opacity: 0.7; margin-bottom: 12px; font-size: 0.9rem; }
   .hud {
     display: flex;
-    gap: 28px;
-    margin-bottom: 18px;
-    font-size: 1.15rem;
+    gap: 18px;
+    margin-bottom: 6px;
+    font-size: 1.05rem;
     font-weight: 600;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .hud span { color: var(--accent); }
+  #lives { letter-spacing: 2px; }
+  #comboBar {
+    width: min(92vw, 520px);
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  #comboFill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.15s;
+  }
   #board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -103,13 +132,36 @@
     z-index: 11;
     animation: rise 0.7s ease-out forwards;
     text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    white-space: nowrap;
   }
   @keyframes rise {
     from { opacity: 1; transform: translateY(0) scale(1); }
     to   { opacity: 0; transform: translateY(-48px) scale(1.4); }
   }
+  #banner {
+    position: fixed;
+    top: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 800;
+    color: var(--accent2);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+    z-index: 12;
+    pointer-events: none;
+    opacity: 0;
+    white-space: nowrap;
+  }
+  #banner.show { animation: bannerIn 1.6s ease forwards; }
+  @keyframes bannerIn {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.6); }
+    15% { opacity: 1; transform: translateX(-50%) scale(1.15); }
+    25% { transform: translateX(-50%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
   button {
-    margin-top: 20px;
+    margin-top: 16px;
     font-size: 1.1rem;
     font-weight: 700;
     padding: 12px 34px;
@@ -125,30 +177,46 @@
   #overlay {
     position: fixed;
     inset: 0;
-    background: rgba(18, 10, 36, 0.86);
+    background: rgba(18, 10, 36, 0.9);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     z-index: 20;
     text-align: center;
     padding: 20px;
+    overflow-y: auto;
   }
   #overlay.hidden { display: none; }
-  #overlay h2 { font-size: 2rem; color: var(--accent); }
-  #rank { font-size: 1.2rem; }
+  #overlay h2 { font-size: 1.9rem; color: var(--accent); }
+  #rank { font-size: 1.15rem; }
+  .legend {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 4px 14px;
+    text-align: left;
+    font-size: 0.92rem;
+    margin: 8px 0;
+    max-width: 420px;
+  }
+  .legend b { color: var(--accent); }
+  .legend .bad b { color: var(--accent2); }
 </style>
 </head>
 <body>
   <h1>HAMMUMU</h1>
-  <div class="tagline">bonk the noobs. spare the pros. 30 seconds.</div>
+  <div class="tagline">bonk the noobs. spare the pros. survive.</div>
   <div class="hud">
     SCORE <span id="score">0</span>
-    TIME <span id="time">30</span>
+    TIME <span id="time">45</span>
+    <span id="lives">❤️❤️❤️</span>
+    WAVE <span id="wave">1</span>
     BEST <span id="best">0</span>
   </div>
+  <div id="comboBar"><div id="comboFill"></div></div>
   <div id="board"></div>
+  <div id="banner"></div>
 
   <svg id="hammer" viewBox="0 0 100 100">
     <rect x="44" y="30" width="12" height="62" rx="5" fill="#a9743c"/>
@@ -158,53 +226,125 @@
 
   <div id="overlay">
     <h2 id="ovTitle">HAMMUMU</h2>
-    <p id="ovText">Noobs 😵 pop out of holes — smash them!<br>
-      Pros 😎 pop out too — do NOT smash the pros.<br>
-      Noob = +10 &nbsp;·&nbsp; Pro = −15 &nbsp;·&nbsp; Combo bonus for streaks.</p>
+    <div class="legend" id="ovLegend">
+      <div>😵 <b>Noob</b></div><div>+10 — bonk it</div>
+      <div>🥷 <b>Ninja noob</b></div><div>+25 — fast, blink and it's gone</div>
+      <div>🪖 <b>Tank noob</b></div><div>+35 — takes TWO hits</div>
+      <div>😏 <b>Dodger</b></div><div>+20 — jumps holes when you hover</div>
+      <div>✨ <b>Golden noob</b></div><div>+50 — rare, basically a rumor</div>
+      <div>⏰ <b>Clock</b></div><div>+4 seconds</div>
+      <div class="bad">😎 <b>Pro</b></div><div class="bad">−15 and <b>−1 life</b></div>
+      <div class="bad">💣 <b>Bomb</b></div><div class="bad">−30 and <b>−1 life</b></div>
+    </div>
+    <p id="ovText">3 lives · 45 seconds · waves get meaner ·<br>combo ×8 triggers 🔥 FEVER (double points)</p>
     <div id="rank"></div>
     <button id="startBtn">START</button>
   </div>
 
 <script>
 (() => {
-  const NOOB = (face) => `
+  // ---------- art ----------
+  const BODY = (fill, extra) => `
     <svg class="noob" viewBox="0 0 100 100">
       <ellipse cx="50" cy="96" rx="34" ry="8" fill="rgba(0,0,0,0.4)"/>
-      <rect x="22" y="34" width="56" height="58" rx="24" fill="${face === 'pro' ? '#59d98c' : '#ffb937'}"/>
-      <circle cx="38" cy="58" r="5.5" fill="#221038"/>
-      <circle cx="62" cy="58" r="5.5" fill="#221038"/>
-      ${face === 'pro'
-        ? '<rect x="28" y="50" width="44" height="12" rx="6" fill="#221038"/><rect x="46" y="52" width="8" height="8" fill="#59d98c"/><path d="M38 76 Q50 82 62 76" stroke="#221038" stroke-width="4" fill="none" stroke-linecap="round"/>'
-        : '<circle cx="50" cy="74" r="7" fill="#221038"/><path d="M26 34 Q50 14 74 34" stroke="#ff5c8a" stroke-width="8" fill="none" stroke-linecap="round"/>'}
+      <rect x="22" y="34" width="56" height="58" rx="24" fill="${fill}"/>
+      ${extra}
     </svg>`;
 
-  const board = document.getElementById('board');
-  const scoreEl = document.getElementById('score');
-  const timeEl = document.getElementById('time');
-  const bestEl = document.getElementById('best');
-  const overlay = document.getElementById('overlay');
-  const ovTitle = document.getElementById('ovTitle');
-  const ovText = document.getElementById('ovText');
-  const rankEl = document.getElementById('rank');
-  const startBtn = document.getElementById('startBtn');
-  const hammer = document.getElementById('hammer');
+  const EYES = '<circle cx="38" cy="58" r="5.5" fill="#221038"/><circle cx="62" cy="58" r="5.5" fill="#221038"/>';
+
+  const ART = {
+    noob: () => BODY('#ffb937', EYES +
+      '<circle cx="50" cy="74" r="7" fill="#221038"/>' +
+      '<path d="M26 34 Q50 14 74 34" stroke="#ff5c8a" stroke-width="8" fill="none" stroke-linecap="round"/>'),
+    ninja: () => BODY('#ffb937',
+      '<rect x="24" y="48" width="52" height="16" rx="8" fill="#6c3fd1"/>' +
+      '<circle cx="38" cy="56" r="4.5" fill="#fff"/><circle cx="62" cy="56" r="4.5" fill="#fff"/>' +
+      '<path d="M76 50 L92 42 M76 58 L94 58" stroke="#6c3fd1" stroke-width="5" stroke-linecap="round"/>' +
+      '<path d="M40 76 L60 76" stroke="#221038" stroke-width="4" stroke-linecap="round"/>'),
+    tank: (hp) => BODY('#ffb937', EYES +
+      '<path d="M40 78 Q50 72 60 78" stroke="#221038" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+      `<path d="M18 44 Q50 6 82 44 L82 50 L18 50 Z" fill="#7a8494"/>` +
+      `<rect x="14" y="44" width="72" height="10" rx="5" fill="#5c6675"/>` +
+      (hp === 1 ? '<path d="M44 12 L50 26 L40 34 L52 44" stroke="#221038" stroke-width="3.5" fill="none"/>' : '')),
+    dodger: () => BODY('#ffb937',
+      '<ellipse cx="38" cy="58" rx="6" ry="4" fill="#221038"/><ellipse cx="62" cy="58" rx="6" ry="4" fill="#221038"/>' +
+      '<circle cx="40.5" cy="57" r="1.8" fill="#fff"/><circle cx="64.5" cy="57" r="1.8" fill="#fff"/>' +
+      '<path d="M36 76 Q50 70 64 78" stroke="#221038" stroke-width="4" fill="none" stroke-linecap="round"/>'),
+    gold: () => BODY('#ffe066', EYES +
+      '<circle cx="50" cy="74" r="7" fill="#221038"/>' +
+      '<path d="M30 30 L34 22 L38 30 M62 26 L66 18 L70 26" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+      '<path d="M22 44 L14 40 M78 48 L88 44" stroke="#ffe066" stroke-width="3" stroke-linecap="round"/>'),
+    pro: () => BODY('#59d98c',
+      '<rect x="28" y="50" width="44" height="12" rx="6" fill="#221038"/><rect x="46" y="52" width="8" height="8" fill="#59d98c"/>' +
+      '<path d="M38 76 Q50 82 62 76" stroke="#221038" stroke-width="4" fill="none" stroke-linecap="round"/>'),
+    bomb: () => `
+      <svg class="noob" viewBox="0 0 100 100">
+        <ellipse cx="50" cy="96" rx="34" ry="8" fill="rgba(0,0,0,0.4)"/>
+        <circle cx="50" cy="64" r="30" fill="#2b2b33"/>
+        <circle cx="41" cy="55" r="9" fill="rgba(255,255,255,0.15)"/>
+        <rect x="45" y="28" width="10" height="12" rx="3" fill="#4a4a55"/>
+        <path d="M50 28 Q58 16 70 18" stroke="#a9743c" stroke-width="4" fill="none"/>
+        <circle cx="72" cy="17" r="5" fill="#ffb937"/>
+        <circle cx="72" cy="17" r="2.5" fill="#ff5c8a"/>
+      </svg>`,
+    clock: () => `
+      <svg class="noob" viewBox="0 0 100 100">
+        <ellipse cx="50" cy="96" rx="34" ry="8" fill="rgba(0,0,0,0.4)"/>
+        <circle cx="50" cy="60" r="32" fill="#9bd8ff"/>
+        <circle cx="50" cy="60" r="26" fill="#e8f7ff"/>
+        <circle cx="30" cy="34" r="7" fill="#9bd8ff"/><circle cx="70" cy="34" r="7" fill="#9bd8ff"/>
+        <path d="M50 60 L50 42 M50 60 L62 66" stroke="#221038" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="50" cy="60" r="3" fill="#221038"/>
+      </svg>`,
+  };
+
+  // ---------- config ----------
+  const DURATION = 45;
+  const TYPES = {
+    noob:   { pts: 10, hp: 1 },
+    ninja:  { pts: 25, hp: 1, fast: 0.55 },
+    tank:   { pts: 35, hp: 2, slow: 1.45 },
+    dodger: { pts: 20, hp: 1 },
+    gold:   { pts: 50, hp: 1, fast: 0.45 },
+    clock:  { pts: 0,  hp: 1 },
+    pro:    { bad: true, penalty: 15 },
+    bomb:   { bad: true, penalty: 30 },
+  };
+  // spawn weights per wave: [type, weight]
+  const WAVES = [
+    { at: 0,  name: null, table: [['noob',78],['pro',14],['clock',4],['gold',4]] },
+    { at: 15, name: 'WAVE 2 — the noobs drank coffee ☕', table: [['noob',48],['ninja',16],['tank',13],['pro',15],['clock',4],['gold',4]] },
+    { at: 30, name: 'WAVE 3 — send help 💀', table: [['noob',31],['ninja',18],['tank',13],['dodger',13],['pro',13],['bomb',8],['clock',2],['gold',2]] },
+  ];
+
+  // ---------- dom ----------
+  const $ = id => document.getElementById(id);
+  const board = $('board'), scoreEl = $('score'), timeEl = $('time'),
+        bestEl = $('best'), livesEl = $('lives'), waveEl = $('wave'),
+        comboFill = $('comboFill'), overlay = $('overlay'), ovTitle = $('ovTitle'),
+        ovText = $('ovText'), ovLegend = $('ovLegend'), rankEl = $('rank'),
+        startBtn = $('startBtn'), hammer = $('hammer'), banner = $('banner');
 
   const holes = [];
   for (let i = 0; i < 9; i++) {
-    const h = document.createElement('div');
-    h.className = 'hole';
-    h.dataset.i = i;
-    board.appendChild(h);
-    holes.push({ el: h, kind: null, timer: null });
+    const el = document.createElement('div');
+    el.className = 'hole';
+    el.dataset.i = i;
+    board.appendChild(el);
+    const h = { el, kind: null, hp: 0, timer: null, canDodge: false };
+    el.addEventListener('mouseenter', () => tryDodge(h));
+    holes.push(h);
   }
 
-  let score = 0, timeLeft = 30, combo = 0, playing = false;
-  let tickTimer = null, spawnTimer = null;
+  // ---------- state ----------
+  let score, timeLeft, elapsed, combo, maxCombo, lives, wave, playing = false, fever = false;
+  let tickTimer = null, spawnTimer = null, feverTimer = null;
   let best = 0;
   try { best = +localStorage.getItem('hammumu-best') || 0; } catch (e) {}
   bestEl.textContent = best;
 
-  // tiny beeps, no assets
+  // ---------- audio ----------
   let ac;
   function beep(freq, dur, type = 'square', vol = 0.06) {
     try {
@@ -218,6 +358,7 @@
     } catch (e) {}
   }
 
+  // ---------- fx ----------
   function popText(x, y, text, color) {
     const d = document.createElement('div');
     d.className = 'pop';
@@ -228,28 +369,109 @@
     document.body.appendChild(d);
     setTimeout(() => d.remove(), 700);
   }
+  function showBanner(text) {
+    banner.textContent = text;
+    banner.classList.remove('show');
+    void banner.offsetWidth;
+    banner.classList.add('show');
+  }
+  function shake() {
+    document.body.classList.remove('shake');
+    void document.body.offsetWidth;
+    document.body.classList.add('shake');
+  }
+
+  // ---------- spawning ----------
+  function pickType() {
+    const table = WAVES[wave - 1].table;
+    let total = 0;
+    for (const [, w] of table) total += w;
+    let r = Math.random() * total;
+    for (const [t, w] of table) { r -= w; if (r <= 0) return t; }
+    return 'noob';
+  }
+
+  function raise(h, kind) {
+    const t = TYPES[kind];
+    h.kind = kind;
+    h.hp = t.hp || 1;
+    h.canDodge = kind === 'dodger';
+    h.el.innerHTML = kind === 'tank' ? ART.tank(2) : ART[kind]();
+    h.el.classList.add('up');
+    h.el.classList.remove('bonked');
+    let stay = Math.max(380, 980 - elapsed * 13) + Math.random() * 350;
+    if (t.fast) stay *= t.fast;
+    if (t.slow) stay *= t.slow;
+    if (fever) stay *= 0.8;
+    clearTimeout(h.timer);
+    h.timer = setTimeout(() => hide(h), stay);
+  }
 
   function spawn() {
     if (!playing) return;
-    const free = holes.filter(h => !h.kind);
-    if (free.length) {
-      const h = free[Math.floor(Math.random() * free.length)];
-      const kind = Math.random() < 0.72 ? 'noob' : 'pro';
-      h.kind = kind;
-      h.el.innerHTML = NOOB(kind);
-      h.el.classList.add('up');
-      h.el.classList.remove('bonked');
-      const stay = Math.max(420, 1000 - (30 - timeLeft) * 18) + Math.random() * 400;
-      h.timer = setTimeout(() => hide(h), stay);
+    const count = 1 +
+      (Math.random() < [0.10, 0.28, 0.45][wave - 1] ? 1 : 0) +
+      (wave === 3 && Math.random() < 0.15 ? 1 : 0);
+    for (let n = 0; n < count; n++) {
+      const free = holes.filter(h => !h.kind);
+      if (!free.length) break;
+      raise(free[Math.floor(Math.random() * free.length)], pickType());
     }
-    const gap = Math.max(260, 620 - (30 - timeLeft) * 11);
-    spawnTimer = setTimeout(spawn, gap + Math.random() * 220);
+    let gap = Math.max(200, 560 - elapsed * 8);
+    if (fever) gap *= 0.7;
+    spawnTimer = setTimeout(spawn, gap + Math.random() * 200);
   }
 
   function hide(h) {
     clearTimeout(h.timer);
     h.kind = null;
+    h.hp = 0;
+    h.canDodge = false;
     h.el.classList.remove('up');
+  }
+
+  function tryDodge(h) {
+    if (!playing || !h.canDodge || h.kind !== 'dodger') return;
+    h.canDodge = false;
+    const free = holes.filter(o => !o.kind && o !== h);
+    if (!free.length) return;
+    const rect = h.el.getBoundingClientRect();
+    popText(rect.left + rect.width / 2, rect.top + 10, 'nope 😏', '#c9b8ff');
+    beep(700, 0.06, 'sine', 0.04);
+    hide(h);
+    const dest = free[Math.floor(Math.random() * free.length)];
+    raise(dest, 'dodger');
+    dest.canDodge = false; // only dodges once
+  }
+
+  // ---------- scoring ----------
+  function updateCombo() {
+    comboFill.style.width = Math.min(combo / 8, 1) * 100 + '%';
+  }
+
+  function startFever() {
+    fever = true;
+    document.body.classList.add('fever');
+    showBanner('🔥 FEVER ×2 🔥');
+    beep(523, 0.1); setTimeout(() => beep(659, 0.1), 90); setTimeout(() => beep(784, 0.15), 180);
+    clearTimeout(feverTimer);
+    feverTimer = setTimeout(() => {
+      fever = false;
+      document.body.classList.remove('fever');
+    }, 6000);
+  }
+
+  function loseLife(penalty, x, y, label) {
+    combo = 0;
+    updateCombo();
+    score = Math.max(0, score - penalty);
+    scoreEl.textContent = score;
+    lives--;
+    livesEl.textContent = '❤️'.repeat(Math.max(lives, 0)) + '🖤'.repeat(3 - Math.max(lives, 0));
+    popText(x, y, label, '#ff5c8a');
+    shake();
+    beep(110, 0.25, 'sawtooth', 0.09);
+    if (lives <= 0) setTimeout(() => end('KNOCKED OUT! 💀'), 320);
   }
 
   function bonk(e) {
@@ -259,48 +481,84 @@
     const holeEl = e.target.closest('.hole');
     if (!holeEl) return;
     const h = holes[+holeEl.dataset.i];
-    if (!h.kind) { combo = 0; return; }
     const x = e.clientX, y = e.clientY;
-    if (h.kind === 'noob') {
-      combo++;
-      const bonus = Math.min(combo - 1, 5) * 2;
-      const pts = 10 + bonus;
-      score += pts;
-      popText(x, y, '+' + pts + (combo >= 3 ? ' 🔥' : ''), '#ffb937');
-      beep(300 + combo * 40, 0.08);
-    } else {
+    if (!h.kind) {
       combo = 0;
-      score = Math.max(0, score - 15);
-      popText(x, y, '−15 that was a PRO 😎', '#ff5c8a');
-      beep(110, 0.25, 'sawtooth', 0.09);
+      updateCombo();
+      beep(160, 0.06, 'triangle', 0.03);
+      return;
     }
+    const kind = h.kind, t = TYPES[kind];
+
+    if (t.bad) {
+      hide(h);
+      holeEl.classList.add('bonked');
+      loseLife(t.penalty, x, y, kind === 'bomb' ? '−30 BOOM 💣' : '−15 that was a PRO 😎');
+      return;
+    }
+    if (kind === 'clock') {
+      hide(h);
+      timeLeft += 4;
+      timeEl.textContent = timeLeft;
+      popText(x, y, '+4s ⏰', '#9bd8ff');
+      beep(880, 0.08, 'sine'); setTimeout(() => beep(1100, 0.1, 'sine'), 80);
+      return;
+    }
+    if (kind === 'tank' && h.hp > 1) {
+      h.hp--;
+      h.el.innerHTML = ART.tank(1);
+      popText(x, y, 'CLANG 🪖', '#c7ced9');
+      beep(200, 0.1, 'square', 0.07);
+      clearTimeout(h.timer);
+      h.timer = setTimeout(() => hide(h), 700);
+      return;
+    }
+    // a scoring bonk
+    combo++;
+    maxCombo = Math.max(maxCombo, combo);
+    updateCombo();
+    const bonus = Math.min(combo - 1, 5) * 2;
+    let pts = t.pts + bonus;
+    if (fever) pts *= 2;
+    score += pts;
     scoreEl.textContent = score;
+    popText(x, y, '+' + pts + (fever ? ' 🔥' : combo >= 3 ? ' ⚡' : ''), kind === 'gold' ? '#ffe066' : '#ffb937');
+    beep(300 + Math.min(combo, 10) * 40, 0.08);
+    if (kind === 'gold') { beep(1200, 0.15, 'sine', 0.05); }
     holeEl.classList.add('bonked');
     setTimeout(() => hide(h), 70);
+    if (combo >= 8 && !fever) startFever();
   }
 
+  // ---------- game flow ----------
   function rank(s) {
-    if (s >= 300) return 'HAMMUMU GOD 🔱';
-    if (s >= 220) return 'Certified Bonker 🔨';
-    if (s >= 150) return 'Semi-Pro Smasher 💪';
-    if (s >= 80) return 'Apprentice of the Hammer 🪵';
+    if (s >= 600) return 'HAMMUMU GOD 🔱';
+    if (s >= 450) return 'Certified Bonker 🔨';
+    if (s >= 300) return 'Semi-Pro Smasher 💪';
+    if (s >= 150) return 'Apprentice of the Hammer 🪵';
     return 'Official Noob (it’s in the repo name) 🐣';
   }
 
-  function end() {
+  function end(title) {
+    if (!playing) return;
     playing = false;
+    fever = false;
+    document.body.classList.remove('fever');
     clearTimeout(spawnTimer);
+    clearTimeout(feverTimer);
     clearInterval(tickTimer);
     holes.forEach(hide);
     hammer.style.display = 'none';
-    document.body.style.cursor = '';
-    if (score > best) {
+    const isNewBest = score > best;
+    if (isNewBest) {
       best = score;
       try { localStorage.setItem('hammumu-best', best); } catch (e) {}
       bestEl.textContent = best;
     }
-    ovTitle.textContent = 'TIME! ' + score + ' pts';
-    ovText.innerHTML = score >= best && score > 0 ? 'NEW BEST! 🎉' : 'Best: ' + best;
+    ovTitle.textContent = title + ' ' + score + ' pts';
+    ovLegend.style.display = 'none';
+    ovText.innerHTML = (isNewBest ? 'NEW BEST! 🎉<br>' : 'Best: ' + best + '<br>') +
+      'Max combo: ' + maxCombo + ' · Reached wave ' + wave;
     rankEl.textContent = 'Rank: ' + rank(score);
     startBtn.textContent = 'AGAIN';
     overlay.classList.remove('hidden');
@@ -308,17 +566,30 @@
   }
 
   function start() {
-    score = 0; timeLeft = 30; combo = 0; playing = true;
-    scoreEl.textContent = 0; timeEl.textContent = 30;
+    score = 0; timeLeft = DURATION; elapsed = 0; combo = 0; maxCombo = 0;
+    lives = 3; wave = 1; fever = false; playing = true;
+    scoreEl.textContent = 0;
+    timeEl.textContent = timeLeft;
+    livesEl.textContent = '❤️❤️❤️';
+    waveEl.textContent = 1;
+    updateCombo();
+    document.body.classList.remove('fever');
     overlay.classList.add('hidden');
     hammer.style.display = 'block';
     holes.forEach(hide);
     beep(440, 0.08); setTimeout(() => beep(660, 0.1), 100);
     tickTimer = setInterval(() => {
-      timeLeft--;
+      timeLeft--; elapsed++;
       timeEl.textContent = timeLeft;
+      const next = WAVES.findIndex(w => elapsed === w.at);
+      if (next > 0) {
+        wave = next + 1;
+        waveEl.textContent = wave;
+        showBanner(WAVES[next].name);
+        beep(330, 0.1); setTimeout(() => beep(440, 0.12), 110);
+      }
       if (timeLeft <= 5 && timeLeft > 0) beep(880, 0.05, 'sine', 0.04);
-      if (timeLeft <= 0) end();
+      if (timeLeft <= 0) end('TIME!');
     }, 1000);
     spawn();
   }
@@ -328,7 +599,10 @@
     hammer.style.top = e.clientY + 'px';
   });
   document.addEventListener('mousedown', bonk);
-  startBtn.addEventListener('click', start);
+  startBtn.addEventListener('click', () => {
+    ovLegend.style.display = '';
+    start();
+  });
 })();
 </script>
 </body>
